@@ -6,6 +6,9 @@ EditorUserSettings:
   serializedVersion: 4
   m_ConfigSettings:
     RecentlyUsedSceneGuid-0:
+      value: 5b040c5552065e0b5c5f08741125084412164a2c797f73322b2a4435b7b9676c
+      flags: 0
+    RecentlyUsedSceneGuid-1:
       value: 5a08575f5207595a0f5d59741173094444164f7d7d2a23317c7a4465bbe1646d
       flags: 0
     UnityRemoteDevice:
@@ -13,6 +16,9 @@ EditorUserSettings:
       flags: 0
     UnityRemoteResolution:
       value: 275e4308165c135e
+      flags: 0
+    lightmappingBakingProfile:
+      value: 51
       flags: 0
     vcSharedLogLevel:
       value: 0d5e400f0650

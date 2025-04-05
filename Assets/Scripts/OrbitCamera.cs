@@ -3,11 +3,16 @@ using UnityEngine;
 public class OrbitCamera : MonoBehaviour
 {
     public Transform target;                 // El personaje a seguir
-    public float distance = 5f;              // Distancia desde el personaje
+    public float distance = 5f;              // Distancia inicial desde el personaje
     public float sensitivity = 3f;           // Sensibilidad de movimiento
     public float minY = -20f, maxY = 80f;    // Límites verticales
-    public Vector3 offset = new Vector3(0, 1.25f, 0); // Altura de la cámara
+    public Vector3 offset = new Vector3(0, 1f, 0); // Altura de la cámara
 
+    public float zoomSpeed = 2f;             // Velocidad del zoom
+    public float minZoom = 2f;               // Zoom mínimo
+    public float maxZoom = 7f;              // Zoom máximo
+
+    private float currentZoom;
     private float rotX = 0f;
     private float rotY = 15f;
 
@@ -16,6 +21,8 @@ public class OrbitCamera : MonoBehaviour
         Vector3 angles = transform.eulerAngles;
         rotX = angles.y;
         rotY = angles.x;
+
+        currentZoom = distance;
 
         if (target == null)
         {
@@ -37,6 +44,11 @@ public class OrbitCamera : MonoBehaviour
             inputX = Input.GetAxis("Mouse X") * sensitivity;
             inputY = Input.GetAxis("Mouse Y") * sensitivity;
         }
+
+        // Zoom con scroll del mouse
+        float scroll = Input.GetAxis("Mouse ScrollWheel");
+        currentZoom -= scroll * zoomSpeed;
+        currentZoom = Mathf.Clamp(currentZoom, minZoom, maxZoom);
 #elif UNITY_ANDROID || UNITY_IOS
         if (Input.touchCount == 1)
         {
@@ -59,7 +71,7 @@ public class OrbitCamera : MonoBehaviour
 
         Quaternion rotation = Quaternion.Euler(rotY, rotX, 0);
         Vector3 focusPoint = target.position + offset; // centro real de rotación
-        Vector3 cameraPosition = focusPoint - (rotation * Vector3.forward * distance);
+        Vector3 cameraPosition = focusPoint - (rotation * Vector3.forward * currentZoom);
 
         transform.position = cameraPosition;
         transform.LookAt(focusPoint);
