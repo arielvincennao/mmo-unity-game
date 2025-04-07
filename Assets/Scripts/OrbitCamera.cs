@@ -6,7 +6,7 @@ public class OrbitCamera : MonoBehaviour
     public float distance = 5f;              // Distancia inicial desde el personaje
     public float sensitivity = 3f;           // Sensibilidad de movimiento
     public float minY = -20f, maxY = 80f;    // Límites verticales
-    public Vector3 offset = new Vector3(0, 1f, 0); // Altura de la cámara
+    public Vector3 offset = new Vector3(0, 0.1f, 0); // Altura de la cámara
 
     public float zoomSpeed = 2f;             // Velocidad del zoom
     public float minZoom = 2f;               // Zoom mínimo

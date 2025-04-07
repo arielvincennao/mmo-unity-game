@@ -12,10 +12,16 @@ public class PlayerNameDisplay : MonoBehaviour
 
     void LateUpdate()
     {
-        if (Camera.main != null)
+        if (Camera.main == null) return;
+
+        Vector3 cameraPosition = Camera.main.transform.position;
+        Vector3 lookDirection = transform.position - cameraPosition;
+        lookDirection.y = 0; // No girar en el eje vertical
+
+        if (lookDirection.sqrMagnitude > 0.001f)
         {
-            Vector3 dir = transform.position - Camera.main.transform.position;
-            transform.rotation = Quaternion.LookRotation(dir);
+            transform.rotation = Quaternion.LookRotation(lookDirection);
+            // transform.Rotate(0, 180f, 0); // Descomentar si el texto se ve dado vuelta
         }
     }
 }
