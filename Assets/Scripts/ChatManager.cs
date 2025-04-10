@@ -10,12 +10,13 @@ public class ChatManager : MonoBehaviour
     public TextMeshProUGUI messagePrefab;
     public ScrollRect scrollRect;
 
-    [Header("Jugador")]
-    public string playerName = "Jugador1"; // Podés cambiar esto dinámicamente luego
+    [Header("Configuración")]
+    public string playerName = "Jugador1"; // nombre del usuario
+    public int autoScrollThreshold = 5;    // umbral mínimo de mensajes para activar el auto scroll
 
     void Start()
     {
-        inputField.onSubmit.AddListener(SendMessage); // Enter para enviar
+        inputField.onSubmit.AddListener(SendMessage); // Enviar con Enter
     }
 
     public void OnSendButtonClicked()
@@ -27,16 +28,20 @@ public class ChatManager : MonoBehaviour
     {
         if (string.IsNullOrWhiteSpace(message)) return;
 
+        // Instanciar el mensaje en el contenedor
         var newMsg = Instantiate(messagePrefab, messageContainer);
         newMsg.text = $"[{playerName}]: {message}";
 
-        // Limpiar input y volver a enfocarlo
+        // Limpiar y reactivar el campo de entrada
         inputField.text = "";
         inputField.ActivateInputField();
 
-        // Auto scroll al final
-        Canvas.ForceUpdateCanvases();
-        scrollRect.verticalNormalizedPosition = 1f;
-        Canvas.ForceUpdateCanvases();
+        // Si la cantidad de mensajes supera el umbral, auto-scroll al final
+        if (messageContainer.childCount >= autoScrollThreshold)
+        {
+            Canvas.ForceUpdateCanvases();
+            scrollRect.verticalNormalizedPosition = 0f; 
+            Canvas.ForceUpdateCanvases();
+        }
     }
 }
