@@ -1,6 +1,7 @@
 using UnityEngine;
+using Unity.Netcode;
 
-public class PlayerControllerTest : MonoBehaviour
+public class PlayerControllerTest : NetworkBehaviour
 {
     [Header("Movimiento")]
     public float speed = 5f;
@@ -18,45 +19,58 @@ public class PlayerControllerTest : MonoBehaviour
     private Vector3 velocity;
     private bool isGrounded;
 
+    // 🔁 Variable de red para sincronizar la posición
+    private NetworkVariable<Vector3> networkedPosition = new NetworkVariable<Vector3>(
+        writePerm: NetworkVariableWritePermission.Owner
+    );
+
     void Start()
     {
+        // Solo el dueño usa la cámara principal
+        if (IsOwner && cam == null)
+            cam = Camera.main.transform;
+
         if (controller == null)
             controller = GetComponent<CharacterController>();
-
-        if (cam == null)
-            cam = Camera.main.transform;
     }
 
     void Update()
     {
-        // Comprobar si estamos tocando el suelo
-        isGrounded = controller.isGrounded;
-
-        if (isGrounded && velocity.y < 0)
-            velocity.y = -2f; // mantenernos pegados al suelo
-
-        // Movimiento con cámara
-        float horizontal = Input.GetAxisRaw("Horizontal");
-        float vertical = Input.GetAxisRaw("Vertical");
-        Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
-
-        if (direction.magnitude >= 0.1f)
+        if (IsOwner)
         {
-            float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + cam.eulerAngles.y;
-            float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
-            transform.rotation = Quaternion.Euler(0f, angle, 0f);
+            // Movimiento local
+            isGrounded = controller.isGrounded;
 
-            Vector3 moveDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
-            controller.Move(moveDir.normalized * speed * Time.deltaTime);
+            if (isGrounded && velocity.y < 0)
+                velocity.y = -2f;
+
+            float horizontal = Input.GetAxisRaw("Horizontal");
+            float vertical = Input.GetAxisRaw("Vertical");
+            Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
+
+            if (direction.magnitude >= 0.1f)
+            {
+                float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + cam.eulerAngles.y;
+                float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
+                transform.rotation = Quaternion.Euler(0f, angle, 0f);
+
+                Vector3 moveDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
+                controller.Move(moveDir.normalized * speed * Time.deltaTime);
+            }
+
+            if (isGrounded && Input.GetButtonDown("Jump"))
+                velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+
+            velocity.y += gravity * Time.deltaTime;
+            controller.Move(velocity * Time.deltaTime);
+
+            // 🔁 Actualizar posición de red
+            networkedPosition.Value = transform.position;
         }
-
-        // Saltar
-        if (isGrounded && Input.GetButtonDown("Jump"))
-            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-
-        // Aplicar gravedad
-        velocity.y += gravity * Time.deltaTime;
-        controller.Move(velocity * Time.deltaTime);
+        else
+        {
+            // 🔄 Reproducir posición sincronizada
+            transform.position = networkedPosition.Value;
+        }
     }
 }
-
